@@ -1,6 +1,7 @@
 # rrule-go
 
 Go library for working with recurrence rules for calendar dates.
+
 this library is a fork from https://github.com/teambition/rrule-go MIT License, with same base but fixing on a daylight savings
 
 [![CI](https://github.com/teambition/rrule-go/actions/workflows/ci.yml/badge.svg)](https://github.com/teambition/rrule-go/actions/workflows/ci.yml)
