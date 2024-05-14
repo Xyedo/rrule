@@ -29,6 +29,12 @@ func (s durrSlice) Len() int           { return len(s) }
 func (s durrSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s durrSlice) Less(i, j int) bool { return s[i] < s[j] }
 
+type weekDays []Weekday
+
+func (s weekDays) Len() int           { return len(s) }
+func (s weekDays) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+func (s weekDays) Less(i, j int) bool { return s[i].weekday < s[j].weekday }
+
 // Python: MO-SU: 0 - 6
 // Golang: SU-SAT 0 - 6
 func toPyWeekday(from time.Weekday) int {
@@ -189,4 +195,13 @@ func after(next Next, dt time.Time, inc bool) time.Time {
 type optInt struct {
 	Int     int
 	Defined bool
+}
+
+func indexOfWeekDay(weekDays []Weekday, weekday Weekday) int {
+	for i, wd := range weekDays {
+		if wd == weekday {
+			return i
+		}
+	}
+	return -1
 }

@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"sort"
 	"time"
+
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"golang.org/x/text/language"
 )
 
 // Every mask is 7 days longer to handle cross-year weekly periods.
@@ -134,6 +137,7 @@ type RRule struct {
 	byeaster                []int
 	timeDurr                []time.Duration
 	len                     int
+	i18n                    *i18n.Bundle
 }
 
 // NewRRule construct a new RRule instance
@@ -142,6 +146,18 @@ func NewRRule(arg ROption) (*RRule, error) {
 		return nil, err
 	}
 	r := buildRRule(arg)
+	return &r, nil
+}
+
+func NewRRuleWithi18n(arg ROption, bundle *i18n.Bundle) (*RRule, error) {
+
+	if err := validateBounds(arg); err != nil {
+		return nil, err
+	}
+	r := buildRRule(arg)
+
+	r.i18n = bundle
+
 	return &r, nil
 }
 
@@ -954,4 +970,22 @@ func (r *RRule) Until(ut time.Time) {
 // GetUntil gets UNTIL time for rrule
 func (r *RRule) GetUntil() time.Time {
 	return r.until
+}
+
+func (r *RRule) ToText() string {
+	if r.i18n == nil {
+		r.i18n = i18n.NewBundle(language.English)
+	}
+	loc := i18n.NewLocalizer(r.i18n, "en-US")
+
+	return newToText(r, loc, defaultFormatter{}).ToString()
+}
+
+func (r *RRule) ToTextWithCustomFormatter(formatter TimeFormatter, langs ...string) (string, error) {
+	if r.i18n == nil {
+		return "", errors.New("i18n bundle is required")
+	}
+	loc := i18n.NewLocalizer(r.i18n, langs...)
+
+	return newToText(r, loc, formatter).ToString(), nil
 }

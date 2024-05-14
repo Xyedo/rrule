@@ -1,0 +1,98 @@
+[And]
+description = "Used for final delimiter in list"
+hash = "sha1-9449a6823e7720df7373ff0186e704fecefa936e"
+other = "dan"
+
+[AtHour]
+hash = "sha1-27e90dfa57c358acfaf470860f6f72c9282ce995"
+other = "pada jam"
+
+[DailyDay]
+hash = "sha1-5548ae4f34cbb6e30414532924e2088d915b460f"
+other = "hari"
+
+[Every]
+hash = "sha1-5873f666d03fb3fb39d0db9c71b5e1f769334088"
+other = "setiap"
+
+[HourlyHours]
+hash = "sha1-5aedee0964c6b2b3fc2c57843d266e138c2f128a"
+other = "jam"
+
+[In]
+hash = "sha1-af10ef20dd9060bbeead0afbc55381a66af442ef"
+other = "dalam"
+
+[MinutelyMinutes]
+hash = "sha1-be2e2bb698c7a42a8ff654d6025fa7c4c335bfc9"
+other = "menit"
+
+[MonthlyMonths]
+hash = "sha1-f1494311e45e6d88177eaf1a6727542529836cc8"
+other = "bulan"
+
+[MonthlyWeekdays]
+hash = "sha1-85b24177b7ce68a023682b2928d52413b16c1385"
+other = "hari kerja"
+
+[OnAllWeeks]
+hash = "sha1-db3d405b10675998c030223177d42e71b4e7a312"
+other = "pada"
+
+[OnMonthly]
+hash = "sha1-db3d405b10675998c030223177d42e71b4e7a312"
+other = "pada"
+
+[OnThe]
+description = "Used before list bymonthday, byweekday, byyearday and someWeeks"
+hash = "sha1-6c04773a7792624e9f6fb95c133033f64aa261eb"
+other = "di"
+
+[OnWeekDays]
+hash = "sha1-db3d405b10675998c030223177d42e71b4e7a312"
+other = "pada"
+
+[OnWeekly]
+hash = "sha1-db3d405b10675998c030223177d42e71b4e7a312"
+other = "pada"
+
+[Or]
+description = "Used for final delimiter in list"
+hash = "sha1-5570d406e967c7dbad146faf306176905dbed717"
+other = "atau"
+
+[TheAllWeeks]
+hash = "sha1-bbccdf2efb33b52e6c9d0a14dd70b2d415fbea6e"
+other = "di"
+
+[TimeCount]
+hash = "sha1-8f6e1e1d1507ab56e2c4a7168eeced59fe91f5e0"
+other = "sebanyak {{.Count}} kali"
+
+[Until]
+hash = "sha1-b310f4d4d89b8570184b9777ad7d90fc1df20457"
+other = "sampai"
+
+[Weekdays]
+hash = "sha1-85b24177b7ce68a023682b2928d52413b16c1385"
+other = "hari kerja"
+
+[WeeklyDay]
+hash = "sha1-5548ae4f34cbb6e30414532924e2088d915b460f"
+other = "hari"
+
+[WeeklyWeeks]
+hash = "sha1-0af64388b588a51f18c267b0252844d8c8484e12"
+other = "minggu"
+
+[YearlyDays]
+hash = "sha1-a2620cbc10f5198dd03e3f5a1569eb5dcf9a6a87"
+other = "hari"
+
+[YearlyWeeks]
+hash = "sha1-0af64388b588a51f18c267b0252844d8c8484e12"
+other = "minggu"
+
+[YearlyYears]
+hash = "sha1-e21ee77d500910a11959b5af57fd48d7cf7f326a"
+other = "tahun"

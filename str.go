@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 const (
@@ -283,6 +285,16 @@ func StrToRRule(rfcString string) (*RRule, error) {
 		return nil, e
 	}
 	return NewRRule(*option)
+}
+
+func StrToRRuleWithi18n(rfcString string, bundle *i18n.Bundle) (*RRule, error) {
+	rule, err := StrToRRule(rfcString)
+	if err != nil {
+		return nil, err
+	}
+
+	rule.i18n = bundle
+	return rule, nil
 }
 
 // StrToRRuleSet converts string to RRuleSet

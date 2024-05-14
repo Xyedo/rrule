@@ -3,8 +3,13 @@
 package rrule
 
 import (
+	"strconv"
 	"testing"
 	"time"
+
+	"github.com/BurntSushi/toml"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"golang.org/x/text/language"
 )
 
 func TestRFCRuleToStr(t *testing.T) {
@@ -429,5 +434,116 @@ func TestStrSetParseErrors(t *testing.T) {
 		if _, err := StrSliceToRRuleSet(ss); err == nil {
 			t.Error("Expected parse error for rules: ", ss)
 		}
+	}
+}
+
+func TestToText(t *testing.T) {
+	var tests = []struct {
+		rule     string
+		expected string
+	}{
+		{rule: "DTSTART:20171101T010000Z\nRRULE:UNTIL=20171214T013000Z;FREQ=DAILY;INTERVAL=2;WKST=MO;BYHOUR=11,12;BYMINUTE=30;BYSECOND=0", expected: "every 2 days at 11 and 12 until December 14, 2017"},
+		{rule: "DTSTART:20171101T010000Z\nRRULE:UNTIL=20171214T013000Z;FREQ=DAILY;INTERVAL=2;WKST=MO;BYHOUR=11;BYMINUTE=30;BYSECOND=0", expected: "every 2 days at 11 until December 14, 2017"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.expected, func(t *testing.T) {
+			r, err := StrToRRule(tt.rule)
+			if err != nil {
+				t.Fatalf("StrToRRule(%q) returned error: %v", tt.rule, err)
+			}
+
+			if r.ToText() != tt.expected {
+				t.Errorf("Expected %q, got %q", tt.expected, r.ToText())
+			}
+		})
+	}
+}
+
+type indonesianFormatter struct{}
+
+// Format implements TimeFormatter.
+func (i indonesianFormatter) Format(t time.Time) string {
+	month := [...]string{
+		"Januari", "Februari", "Maret", "April", "Mei", "Juni",
+		"Juli", "Agustus", "September", "Oktober", "November", "Desember",
+	}[t.Month()-1]
+
+	return strconv.Itoa(t.Day()) + " " + month + " " + strconv.Itoa(t.Year())
+}
+
+// MonthName implements TimeFormatter.
+func (i indonesianFormatter) MonthName(m int) string {
+	return [...]string{
+		"Januari", "Februari", "Maret", "April", "Mei", "Juni",
+		"Juli", "Agustus", "September", "Oktober", "November", "Desember",
+	}[m-1]
+}
+
+// Nth implements TimeFormatter.
+func (indonesianFormatter) Nth(i int) string {
+	if i == -1 {
+		return "terakhir"
+	}
+
+	npos := abs(i)
+	if i < 0 {
+		return strconv.Itoa(npos) + " terakhir"
+	}
+
+	return strconv.Itoa(npos)
+}
+
+// WeekDayName implements TimeFormatter.
+func (i indonesianFormatter) WeekDayName(w Weekday) string {
+	weekday := [...]string{
+		"Senin",
+		"Selasa",
+		"Rabu",
+		"Kamis",
+		"Jumat",
+		"Sabtu",
+		"Minggu",
+	}[w.Day()]
+
+	if n := w.N(); n != 0 {
+		return i.Nth(n) + " " + weekday
+	}
+
+	return weekday
+}
+
+var _ TimeFormatter = indonesianFormatter{}
+
+func TestToTextWithCustomFormatter(t *testing.T) {
+	var tests = []struct {
+		rule     string
+		expected string
+	}{
+		{rule: "DTSTART:20171101T010000Z\nRRULE:UNTIL=20171214T013000Z;FREQ=DAILY;INTERVAL=2;WKST=MO;BYHOUR=11,12;BYMINUTE=30;BYSECOND=0", expected: "setiap 2 hari pada jam 11 dan 12 sampai 14 Desember 2017"},
+		{rule: "DTSTART:20171101T010000Z\nRRULE:UNTIL=20171214T013000Z;FREQ=DAILY;INTERVAL=2;WKST=MO;BYHOUR=11;BYMINUTE=30;BYSECOND=0", expected: "setiap 2 hari pada jam 11 sampai 14 Desember 2017"},
+	}
+
+	bun := i18n.NewBundle(language.English)
+	bun.RegisterUnmarshalFunc("toml", toml.Unmarshal)
+	bun.MustLoadMessageFile("active.en.toml")
+
+	bun.MustLoadMessageFile("example/active.id.toml")
+	for _, tt := range tests {
+		t.Run(tt.expected, func(t *testing.T) {
+
+			r, err := StrToRRuleWithi18n(tt.rule, bun)
+			if err != nil {
+				t.Fatalf("StrToRRule(%q) returned error: %v", tt.rule, err)
+			}
+
+			got, err := r.ToTextWithCustomFormatter(indonesianFormatter{}, "id")
+			if err != nil {
+				t.Fatalf("ToTextWithCustomFormatter error: %v", err)
+			}
+			if got != tt.expected {
+				t.Errorf("Expected %q, got %q", tt.expected, got)
+			}
+		})
 	}
 }

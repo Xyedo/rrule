@@ -4,9 +4,13 @@ package rrule_test
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
+	"github.com/BurntSushi/toml"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/xyedo/rrule"
+	"golang.org/x/text/language"
 )
 
 func printTimeSlice(ts []time.Time) {
@@ -200,4 +204,102 @@ func ExampleStrToRRuleSet() {
 	// 2006-01-03 15:04:05 +0000 UTC
 	// 2006-01-04 15:04:05 +0000 UTC
 	// 2006-01-05 15:04:05 +0000 UTC
+}
+
+func ExampleToText() {
+	r, _ := rrule.StrToRRule("FREQ=DAILY;COUNT=5")
+	fmt.Println(r.String())
+	// RRULE:FREQ=DAILY;COUNT=5
+
+	fmt.Println(r.ToText())
+	// Every day for 5 times
+
+	// Output:
+	// FREQ=DAILY;COUNT=5
+	// every day for 5 times
+}
+
+type indonesianFormatter struct{}
+
+// Format implements TimeFormatter.
+func (i indonesianFormatter) Format(t time.Time) string {
+	month := [...]string{
+		"Januari", "Februari", "Maret", "April", "Mei", "Juni",
+		"Juli", "Agustus", "September", "Oktober", "November", "Desember",
+	}[t.Month()-1]
+
+	return strconv.Itoa(t.Day()) + " " + month + " " + strconv.Itoa(t.Year())
+}
+
+// MonthName implements TimeFormatter.
+func (i indonesianFormatter) MonthName(m int) string {
+	return [...]string{
+		"Januari", "Februari", "Maret", "April", "Mei", "Juni",
+		"Juli", "Agustus", "September", "Oktober", "November", "Desember",
+	}[m-1]
+}
+
+// Nth implements TimeFormatter.
+func (indonesianFormatter) Nth(i int) string {
+	if i == -1 {
+		return "terakhir"
+	}
+	abs := func(i int) int {
+		if i < 0 {
+			return -i
+		}
+		return i
+	}
+	npos := abs(i)
+
+	if i < 0 {
+		return strconv.Itoa(npos) + " terakhir"
+	}
+
+	return strconv.Itoa(npos)
+}
+
+// WeekDayName implements TimeFormatter.
+func (i indonesianFormatter) WeekDayName(w rrule.Weekday) string {
+	weekday := [...]string{
+		"Senin",
+		"Selasa",
+		"Rabu",
+		"Kamis",
+		"Jumat",
+		"Sabtu",
+		"Minggu",
+	}[w.Day()]
+
+	if n := w.N(); n != 0 {
+		return i.Nth(n) + " " + weekday
+	}
+
+	return weekday
+}
+
+var _ rrule.TimeFormatter = indonesianFormatter{}
+
+func ExampleToTextWithCustomFormatter() {
+	bun := i18n.NewBundle(language.English)
+	bun.RegisterUnmarshalFunc("toml", toml.Unmarshal)
+
+	bun.MustLoadMessageFile("../active.en.toml")
+	bun.MustLoadMessageFile("active.id.toml")
+
+	r, _ := rrule.StrToRRuleWithi18n("FREQ=DAILY;COUNT=5", bun)
+	fmt.Println(r.String())
+	// RRULE:FREQ=DAILY;COUNT=5
+
+	got, err := r.ToTextWithCustomFormatter(indonesianFormatter{}, "id")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(got)
+	// Every day for 5 times
+
+	// Output:
+	// FREQ=DAILY;COUNT=5
+	// setiap hari sebanyak 5 kali
 }
