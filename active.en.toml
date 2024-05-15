@@ -1,50 +1,61 @@
 AtHour = "at"
+ByYearDay = "day"
 Every = "every"
-In = "in"
-MonthlyWeekdays = "weekdays"
-OnAllWeeks = "on"
-OnMonthly = "on"
-OnWeekDays = "on"
-OnWeekly = "on"
-TheAllWeeks = "the"
+InMonthly = "in"
+InWeekNo = "in"
+OnAllWeek = "on"
+OnTheMonthDay = "on the"
+OnTheWeekDay = "on the"
+OnTheYearDay = "on the"
+OnWeekDay = "on"
+TheAllWeek = "the"
 Until = "until"
-YearlyDays = "day"
 
 [And]
 description = "Used for final delimiter in list"
 other = "and"
 
-[DailyDay]
+[ByWeekNo]
+few = "weeks"
+many = "weeks"
+one = "week"
+other = "weeks"
+two = "weeks"
+
+[Day]
 few = "days"
 many = "days"
 one = "day"
 other = "days"
 two = "days"
 
-[HourlyHours]
+[EveryDay]
+few = "days"
+many = "days"
+one = "day"
+other = "days"
+two = "days"
+
+[Hour]
 few = "hours"
 many = "hours"
 one = "hour"
 other = "hours"
 two = "hours"
 
-[MinutelyMinutes]
+[Minute]
 few = "minutes"
 many = "minutes"
 one = "minute"
 other = "minutes"
 two = "minutes"
 
-[MonthlyMonths]
+[Month]
 few = "months"
 many = "months"
 one = "month"
 other = "months"
 two = "months"
-
-[OnThe]
-description = "Used before list bymonthday, byweekday, byyearday and someWeeks"
-other = "on the"
 
 [Or]
 description = "Used for final delimiter in list"
@@ -57,35 +68,21 @@ one = "for {{.Count}} time"
 other = "for {{.Count}} times"
 two = "for {{.Count}} times"
 
-[Weekdays]
+[Week]
+few = "weeks"
+many = "weeks"
+one = "week"
+other = "weeks"
+two = "weeks"
+
+[Weekday]
 few = "weekdays"
 many = "weekdays"
 one = "weekday"
 other = "weekdays"
 two = "weekdays"
 
-[WeeklyDay]
-few = "days"
-many = "days"
-one = "day"
-other = "days"
-two = "days"
-
-[WeeklyWeeks]
-few = "weeks"
-many = "weeks"
-one = "week"
-other = "weeks"
-two = "weeks"
-
-[YearlyWeeks]
-few = "weeks"
-many = "weeks"
-one = "week"
-other = "weeks"
-two = "weeks"
-
-[YearlyYears]
+[Year]
 few = "years"
 many = "years"
 one = "year"

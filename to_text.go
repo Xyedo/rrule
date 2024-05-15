@@ -119,17 +119,6 @@ var (
 		Description: "Used for final delimiter in list",
 		Other:       "or",
 	}}
-
-	langOnThe = &i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-		ID:          "OnThe",
-		Description: "Used before list bymonthday, byweekday, byyearday and someWeeks",
-		Other:       "on the",
-	}}
-
-	langIn = &i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-		ID:    "In",
-		Other: "in",
-	}}
 )
 
 func newToText(rule *RRule, loc *i18n.Localizer, formatter TimeFormatter) *toText {
@@ -281,7 +270,7 @@ func (t *toText) hourly(sb *strings.Builder) {
 	sb.WriteString(
 		t.loc.MustLocalize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
-				ID:    "HourlyHours",
+				ID:    "Hour",
 				One:   "hour",
 				Two:   "hours",
 				Few:   "hours",
@@ -303,7 +292,7 @@ func (t *toText) minutely(sb *strings.Builder) {
 	sb.WriteString(
 		t.loc.MustLocalize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
-				ID:    "MinutelyMinutes",
+				ID:    "Minute",
 				One:   "minute",
 				Two:   "minutes",
 				Few:   "minutes",
@@ -324,7 +313,7 @@ func (t *toText) yearly(sb *strings.Builder) {
 			sb.WriteByte(' ')
 			sb.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{
 				DefaultMessage: &i18n.Message{
-					ID:    "YearlyYears",
+					ID:    "Year",
 					One:   "year",
 					Two:   "years",
 					Few:   "years",
@@ -345,7 +334,7 @@ func (t *toText) yearly(sb *strings.Builder) {
 		sb.WriteByte(' ')
 		sb.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
-				ID:    "YearlyYears",
+				ID:    "Year",
 				One:   "year",
 				Two:   "years",
 				Few:   "years",
@@ -364,7 +353,12 @@ func (t *toText) yearly(sb *strings.Builder) {
 
 	if len(t.option.Byyearday) > 0 {
 		sb.WriteByte(' ')
-		sb.WriteString(t.loc.MustLocalize(langOnThe))
+		sb.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:    "OnTheYearDay",
+				Other: "on the",
+			},
+		}))
 
 		sb.WriteByte(' ')
 		sb.WriteString(
@@ -379,7 +373,7 @@ func (t *toText) yearly(sb *strings.Builder) {
 		sb.WriteByte(' ')
 		sb.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
-				ID:    "YearlyDays",
+				ID:    "ByYearDay",
 				Other: "day",
 			},
 		}))
@@ -387,12 +381,17 @@ func (t *toText) yearly(sb *strings.Builder) {
 
 	if len(t.option.Byweekno) > 0 {
 		sb.WriteByte(' ')
-		sb.WriteString(t.loc.MustLocalize(langIn))
+		sb.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:    "InWeekNo",
+				Other: "in",
+			},
+		}))
 
 		sb.WriteByte(' ')
 		sb.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
-				ID:    "YearlyWeeks",
+				ID:    "ByWeekNo",
 				One:   "week",
 				Two:   "weeks",
 				Few:   "weeks",
@@ -424,7 +423,7 @@ func (t *toText) monthly(sb *strings.Builder) {
 			sb.WriteByte(' ')
 			sb.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{
 				DefaultMessage: &i18n.Message{
-					ID:    "MonthlyMonths",
+					ID:    "Month",
 					One:   "month",
 					Two:   "months",
 					Few:   "months",
@@ -436,7 +435,12 @@ func (t *toText) monthly(sb *strings.Builder) {
 
 			if t.option.Interval > 1 {
 				sb.WriteByte(' ')
-				sb.WriteString(t.loc.MustLocalize(langIn))
+				sb.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{
+					DefaultMessage: &i18n.Message{
+						ID:    "InMonthly",
+						Other: "in",
+					},
+				}))
 			}
 		}
 
@@ -451,7 +455,7 @@ func (t *toText) monthly(sb *strings.Builder) {
 		sb.WriteByte(' ')
 		sb.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
-				ID:    "MonthlyMonths",
+				ID:    "Month",
 				One:   "month",
 				Two:   "months",
 				Few:   "months",
@@ -468,7 +472,7 @@ func (t *toText) monthly(sb *strings.Builder) {
 		sb.WriteByte(' ')
 		sb.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
-				ID:    "OnMonthly",
+				ID:    "OnWeekDay",
 				Other: "on",
 			},
 		}))
@@ -476,7 +480,11 @@ func (t *toText) monthly(sb *strings.Builder) {
 		sb.WriteByte(' ')
 		sb.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
-				ID:    "MonthlyWeekdays",
+				ID:    "Weekday",
+				One:   "weekday",
+				Two:   "weekdays",
+				Few:   "weekdays",
+				Many:  "weekdays",
 				Other: "weekdays",
 			},
 		}))
@@ -492,7 +500,7 @@ func (t *toText) weekly(sb *strings.Builder) {
 		sb.WriteByte(' ')
 		sb.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
-				ID:    "WeeklyWeeks",
+				ID:    "Week",
 				One:   "week",
 				Two:   "weeks",
 				Few:   "weeks",
@@ -509,7 +517,7 @@ func (t *toText) weekly(sb *strings.Builder) {
 			sb.WriteString(
 				t.loc.MustLocalize(&i18n.LocalizeConfig{
 					DefaultMessage: &i18n.Message{
-						ID:    "Weekdays",
+						ID:    "Weekday",
 						One:   "weekday",
 						Two:   "weekdays",
 						Few:   "weekdays",
@@ -524,7 +532,7 @@ func (t *toText) weekly(sb *strings.Builder) {
 			sb.WriteString(
 				t.loc.MustLocalize(&i18n.LocalizeConfig{
 					DefaultMessage: &i18n.Message{
-						ID:    "OnWeekly",
+						ID:    "OnWeekDay",
 						Other: "on",
 					},
 				}),
@@ -534,7 +542,7 @@ func (t *toText) weekly(sb *strings.Builder) {
 			sb.WriteString(
 				t.loc.MustLocalize(&i18n.LocalizeConfig{
 					DefaultMessage: &i18n.Message{
-						ID:    "Weekdays",
+						ID:    "Weekday",
 						One:   "weekday",
 						Two:   "weekdays",
 						Few:   "weekdays",
@@ -551,7 +559,7 @@ func (t *toText) weekly(sb *strings.Builder) {
 		sb.WriteString(
 			t.loc.MustLocalize(&i18n.LocalizeConfig{
 				DefaultMessage: &i18n.Message{
-					ID:    "WeeklyDay",
+					ID:    "EveryDay",
 					One:   "day",
 					Two:   "days",
 					Few:   "days",
@@ -567,7 +575,7 @@ func (t *toText) weekly(sb *strings.Builder) {
 			sb.WriteString(
 				t.loc.MustLocalize(&i18n.LocalizeConfig{
 					DefaultMessage: &i18n.Message{
-						ID:    "WeeklyWeeks",
+						ID:    "Week",
 						One:   "week",
 						Two:   "weeks",
 						Few:   "weeks",
@@ -581,7 +589,12 @@ func (t *toText) weekly(sb *strings.Builder) {
 
 		if len(t.origOption.Bymonth) > 0 {
 			sb.WriteByte(' ')
-			sb.WriteString(t.loc.MustLocalize(langIn))
+			sb.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{
+				DefaultMessage: &i18n.Message{
+					ID:    "InMonthly",
+					Other: "in",
+				},
+			}))
 
 			t.byMonth(sb)
 		}
@@ -609,7 +622,7 @@ func (t *toText) daily(sb *strings.Builder) {
 		sb.WriteString(
 			t.loc.MustLocalize(&i18n.LocalizeConfig{
 				DefaultMessage: &i18n.Message{
-					ID:    "Weekdays",
+					ID:    "Weekday",
 					One:   "weekday",
 					Two:   "weekdays",
 					Few:   "weekdays",
@@ -625,7 +638,7 @@ func (t *toText) daily(sb *strings.Builder) {
 		sb.WriteString(
 			t.loc.MustLocalize(&i18n.LocalizeConfig{
 				DefaultMessage: &i18n.Message{
-					ID:    "DailyDay",
+					ID:    "Day",
 					One:   "day",
 					Two:   "days",
 					Few:   "days",
@@ -639,7 +652,12 @@ func (t *toText) daily(sb *strings.Builder) {
 
 	if len(t.origOption.Bymonth) > 0 {
 		sb.WriteByte(' ')
-		sb.WriteString(t.loc.MustLocalize(langIn))
+		sb.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:    "InMonthly",
+				Other: "in",
+			},
+		}))
 
 		t.byMonth(sb)
 	}
@@ -681,7 +699,7 @@ func (t *toText) byMonthDay(sb *strings.Builder) {
 		sb.WriteByte(' ')
 		sb.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
-				ID:    "OnAllWeeks",
+				ID:    "OnAllWeek",
 				Other: "on",
 			},
 		}))
@@ -698,7 +716,7 @@ func (t *toText) byMonthDay(sb *strings.Builder) {
 		sb.WriteByte(' ')
 		sb.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
-				ID:    "TheAllWeeks",
+				ID:    "TheAllWeek",
 				Other: "the",
 			},
 		}))
@@ -711,7 +729,12 @@ func (t *toText) byMonthDay(sb *strings.Builder) {
 		)
 	} else {
 		sb.WriteByte(' ')
-		sb.WriteString(t.loc.MustLocalize(langOnThe))
+		sb.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:    "OnTheMonthDay",
+				Other: "on the",
+			},
+		}))
 
 		sb.WriteByte(' ')
 		sb.WriteString(
@@ -727,7 +750,7 @@ func (t *toText) byWeekDay(sb *strings.Builder) {
 		sb.WriteByte(' ')
 		sb.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
-				ID:    "OnWeekDays",
+				ID:    "OnWeekDay",
 				Other: "on",
 			},
 		}))
@@ -749,7 +772,12 @@ func (t *toText) byWeekDay(sb *strings.Builder) {
 		}
 
 		sb.WriteByte(' ')
-		sb.WriteString(t.loc.MustLocalize(langOnThe))
+		sb.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:    "OnTheWeekDay",
+				Other: "on the",
+			},
+		}))
 
 		sb.WriteByte(' ')
 		sb.WriteString(

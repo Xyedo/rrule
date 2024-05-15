@@ -4,6 +4,7 @@ package rrule
 
 import (
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -487,11 +488,18 @@ func (indonesianFormatter) Nth(i int) string {
 	}
 
 	npos := abs(i)
+	n := strings.Builder{}
+	switch npos {
+	case 1:
+		return "pertama"
+	default:
+		n.WriteString("ke-" + strconv.Itoa(npos))
+	}
 	if i < 0 {
-		return strconv.Itoa(npos) + " terakhir"
+		return n.String() + " terakhir"
 	}
 
-	return strconv.Itoa(npos)
+	return n.String()
 }
 
 // WeekDayName implements TimeFormatter.
@@ -507,7 +515,7 @@ func (i indonesianFormatter) WeekDayName(w Weekday) string {
 	}[w.Day()]
 
 	if n := w.N(); n != 0 {
-		return i.Nth(n) + " " + weekday
+		return weekday + " " + i.Nth(n)
 	}
 
 	return weekday
@@ -520,8 +528,31 @@ func TestToTextWithCustomFormatter(t *testing.T) {
 		rule     string
 		expected string
 	}{
-		{rule: "DTSTART:20171101T010000Z\nRRULE:UNTIL=20171214T013000Z;FREQ=DAILY;INTERVAL=2;WKST=MO;BYHOUR=11,12;BYMINUTE=30;BYSECOND=0", expected: "setiap 2 hari pada jam 11 dan 12 sampai 14 Desember 2017"},
-		{rule: "DTSTART:20171101T010000Z\nRRULE:UNTIL=20171214T013000Z;FREQ=DAILY;INTERVAL=2;WKST=MO;BYHOUR=11;BYMINUTE=30;BYSECOND=0", expected: "setiap 2 hari pada jam 11 sampai 14 Desember 2017"},
+		{rule: "DTSTART:20171101T010000Z\nRRULE:UNTIL=20171214T013000Z;FREQ=DAILY;INTERVAL=2;WKST=MO;BYHOUR=11,12;BYMINUTE=30;BYSECOND=0", expected: "setiap 2 hari pada pukul 11 dan 12 sampai 14 Desember 2017"},
+		{rule: "DTSTART:20171101T010000Z\nRRULE:UNTIL=20171214T013000Z;FREQ=DAILY;INTERVAL=2;WKST=MO;BYHOUR=11;BYMINUTE=30;BYSECOND=0", expected: "setiap 2 hari pada pukul 11 sampai 14 Desember 2017"},
+		{expected: "setiap hari", rule: "RRULE:FREQ=DAILY"},
+		{expected: "setiap hari pada pukul 10, 12 dan 17", rule: "RRULE:FREQ=DAILY;BYHOUR=10,12,17"},
+		{expected: "setiap minggu pada hari Minggu pada pukul 10, 12 dan 17", rule: "RRULE:FREQ=WEEKLY;BYDAY=SU;BYHOUR=10,12,17"},
+		{expected: "setiap minggu", rule: "RRULE:FREQ=WEEKLY"},
+		{expected: "setiap jam", rule: "RRULE:FREQ=HOURLY"},
+		{expected: "setiap 4 jam", rule: "RRULE:INTERVAL=4;FREQ=HOURLY"},
+		{expected: "setiap minggu pada hari Selasa", rule: "RRULE:FREQ=WEEKLY;BYDAY=TU"},
+		{expected: "setiap minggu pada hari Senin, Rabu", rule: "RRULE:FREQ=WEEKLY;BYDAY=MO,WE"},
+		{expected: "setiap hari kerja", rule: "RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR"},
+		{expected: "setiap 2 minggu", rule: "RRULE:INTERVAL=2;FREQ=WEEKLY"},
+		{expected: "setiap bulan", rule: "RRULE:FREQ=MONTHLY"},
+		{expected: "setiap 6 bulan", rule: "RRULE:INTERVAL=6;FREQ=MONTHLY"},
+		{expected: "setiap tahun", rule: "RRULE:FREQ=YEARLY"},
+		{expected: "setiap tahun pada hari Jumat pertama", rule: "RRULE:FREQ=YEARLY;BYDAY=+1FR"},
+		{expected: "setiap tahun pada hari Jumat ke-13", rule: "RRULE:FREQ=YEARLY;BYDAY=+13FR"},
+		{expected: "setiap bulan pada hari ke-4", rule: "RRULE:FREQ=MONTHLY;BYMONTHDAY=4"},
+		{expected: "setiap bulan pada hari ke-4 terakhir", rule: "RRULE:FREQ=MONTHLY;BYMONTHDAY=-4"},
+		{expected: "setiap bulan pada hari Selasa ke-3", rule: "RRULE:FREQ=MONTHLY;BYDAY=+3TU"},
+		{expected: "setiap bulan pada hari Selasa ke-3 terakhir", rule: "RRULE:FREQ=MONTHLY;BYDAY=-3TU"},
+		{expected: "setiap bulan pada hari Senin terakhir", rule: "RRULE:FREQ=MONTHLY;BYDAY=-1MO"},
+		{expected: "setiap bulan pada hari Jumat ke-2 terakhir", rule: "RRULE:FREQ=MONTHLY;BYDAY=-2FR"},
+		{expected: "setiap minggu sampai 1 Januari 2007", rule: "RRULE:FREQ=WEEKLY;UNTIL=20070101T080000Z"},
+		{expected: "setiap minggu sebanyak 20 kali", rule: "RRULE:FREQ=WEEKLY;COUNT=20"},
 	}
 
 	bun := i18n.NewBundle(language.English)

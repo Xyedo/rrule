@@ -51,19 +51,6 @@ other = "bulan"
 hash = "sha1-db3d405b10675998c030223177d42e71b4e7a312"
 other = "pada"
 
-[OnTheMonthDay]
-hash = "sha1-eaee227a8a87467960f404a509b9324237307aaf"
-other = "pada hari"
-
-[OnTheWeekDay]
-hash = "sha1-eaee227a8a87467960f404a509b9324237307aaf"
-other = "pada hari"
-
-[OnTheYearDay]
-hash = "sha1-eaee227a8a87467960f404a509b9324237307aaf"
-other = "pada hari"
-
-
 [OnWeekDay]
 hash = "sha1-db3d405b10675998c030223177d42e71b4e7a312"
 other = "pada hari"
