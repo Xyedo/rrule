@@ -469,6 +469,10 @@ func TestStrToRRule(t *testing.T) {
 		t.Fatalf("Expected zero time got %v", z)
 	}
 
+	z = rrule.Before(time.Now(), false)
+	if !z.IsZero() {
+		t.Fatalf("Expected zero time got %v", z)
+	}
 }
 func TestToText(t *testing.T) {
 	var tests = []struct {
