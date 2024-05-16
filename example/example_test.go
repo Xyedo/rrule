@@ -5,6 +5,7 @@ package rrule_test
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/BurntSushi/toml"
@@ -251,12 +252,18 @@ func (indonesianFormatter) Nth(i int) string {
 		return i
 	}
 	npos := abs(i)
-
+	n := strings.Builder{}
+	switch npos {
+	case 1:
+		return "pertama"
+	default:
+		n.WriteString("ke-" + strconv.Itoa(npos))
+	}
 	if i < 0 {
-		return strconv.Itoa(npos) + " terakhir"
+		return n.String() + " terakhir"
 	}
 
-	return strconv.Itoa(npos)
+	return n.String()
 }
 
 // WeekDayName implements TimeFormatter.
@@ -272,7 +279,7 @@ func (i indonesianFormatter) WeekDayName(w rrule.Weekday) string {
 	}[w.Day()]
 
 	if n := w.N(); n != 0 {
-		return i.Nth(n) + " " + weekday
+		return weekday + " " + i.Nth(n)
 	}
 
 	return weekday
