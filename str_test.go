@@ -3,6 +3,8 @@
 package rrule
 
 import (
+	"encoding/json"
+	"log"
 	"strconv"
 	"strings"
 	"testing"
@@ -22,6 +24,7 @@ func TestRFCRuleToStr(t *testing.T) {
 	if r.String() != want {
 		t.Errorf("Expected RFC string %s, got %v", want, r.String())
 	}
+
 }
 
 func TestRFCSetToString(t *testing.T) {
@@ -55,6 +58,7 @@ func TestCompatibility(t *testing.T) {
 	if s := r.String(); s != want {
 		t.Errorf("StrToRRule(%q).String() = %q, want %q", want, want, want)
 	}
+
 }
 
 func TestInvalidString(t *testing.T) {
@@ -438,6 +442,34 @@ func TestStrSetParseErrors(t *testing.T) {
 	}
 }
 
+func TestStrToRRule(t *testing.T) {
+	str := `
+	{
+		"rule":"DTSTART:20241102T090000Z\nRRULE:FREQ=MONTHLY;BYDAY=21MO;BYMONTH=08;UNTIL=20270306T175200Z;INTERVAL=9"
+	}
+	`
+
+	var input struct {
+		Rule string `json:"rule"`
+	}
+	err := json.Unmarshal([]byte(str), &input)
+	if err != nil {
+		t.Fatalf("json.Unmarshal error: %v", err)
+	}
+
+	log.Println(input)
+
+	rrule, err := StrToRRule(input.Rule)
+	if err != nil {
+		t.Fatalf("StrToRRule(%q) returned error: %v", str, err)
+	}
+
+	z := rrule.After(time.Now(), false)
+	if !z.IsZero() {
+		t.Fatalf("Expected zero time got %v", z)
+	}
+
+}
 func TestToText(t *testing.T) {
 	var tests = []struct {
 		rule     string

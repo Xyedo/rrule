@@ -186,7 +186,8 @@ func after(next Next, dt time.Time, inc bool) time.Time {
 		if !ok {
 			return time.Time{}
 		}
-		if inc && !v.Before(dt) || !inc && v.After(dt) {
+		if inc && !v.Before(dt) ||
+			!inc && v.After(dt) {
 			return v
 		}
 	}
