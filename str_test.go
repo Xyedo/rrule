@@ -442,37 +442,57 @@ func TestStrSetParseErrors(t *testing.T) {
 	}
 }
 
-func TestStrToRRule(t *testing.T) {
-	str := `
+func TestStrToOption(t *testing.T) {
+	t.Run("ValidParsing", func(t *testing.T) {
+		str := `
 	{
 		"rule":"DTSTART:20241102T090000Z\nRRULE:FREQ=MONTHLY;BYDAY=21MO;BYMONTH=08;UNTIL=20270306T175200Z;INTERVAL=9"
 	}
 	`
 
-	var input struct {
-		Rule string `json:"rule"`
-	}
-	err := json.Unmarshal([]byte(str), &input)
-	if err != nil {
-		t.Fatalf("json.Unmarshal error: %v", err)
-	}
+		var input struct {
+			Rule string `json:"rule"`
+		}
+		err := json.Unmarshal([]byte(str), &input)
+		if err != nil {
+			t.Fatalf("json.Unmarshal error: %v", err)
+		}
 
-	log.Println(input)
+		log.Println(input)
 
-	rrule, err := StrToRRule(input.Rule)
-	if err != nil {
-		t.Fatalf("StrToRRule(%q) returned error: %v", str, err)
-	}
+		rrule, err := StrToRRule(input.Rule)
+		if err != nil {
+			t.Fatalf("StrToRRule(%q) returned error: %v", str, err)
+		}
 
-	z := rrule.After(time.Now(), false)
-	if !z.IsZero() {
-		t.Fatalf("Expected zero time got %v", z)
-	}
+		z := rrule.After(time.Now(), false)
+		if !z.IsZero() {
+			t.Fatalf("Expected zero time got %v", z)
+		}
 
-	z = rrule.Before(time.Now(), false)
-	if !z.IsZero() {
-		t.Fatalf("Expected zero time got %v", z)
-	}
+		z = rrule.Before(time.Now(), false)
+		if !z.IsZero() {
+			t.Fatalf("Expected zero time got %v", z)
+		}
+	})
+
+	t.Run("ValidWithTZID", func(t *testing.T) {
+		input := "DTSTART;TZID=Asia/Bangkok:20240521T114100\nRRULE:FREQ=WEEKLY;UNTIL=20240521T114200;WKST=MO"
+		rrule, err := StrToRRule(input)
+		if err != nil {
+			t.Fatalf("StrToRRule(%q) returned error: %v", input, err)
+		}
+
+		expectedDtstart := time.Date(2024, 5, 21, 11, 41, 0, 0, time.FixedZone("Asia/Bangkok", 7*3600))
+		if !rrule.GetDTStart().Equal(expectedDtstart) {
+			t.Errorf("Expected dtstart %v, got %v", expectedDtstart, rrule.GetDTStart())
+		}
+
+		expectedUntil := time.Date(2024, 5, 21, 11, 42, 0, 0, time.FixedZone("Asia/Bangkok", 7*3600))
+		if !rrule.GetUntil().Equal(expectedUntil) {
+			t.Errorf("Expected until %v, got %v", expectedUntil, rrule.GetUntil())
+		}
+	})
 }
 func TestToText(t *testing.T) {
 	var tests = []struct {

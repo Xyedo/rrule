@@ -23,12 +23,6 @@ func (s timeSlice) Len() int           { return len(s) }
 func (s timeSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s timeSlice) Less(i, j int) bool { return s[i].Before(s[j]) }
 
-type durrSlice []time.Duration
-
-func (s durrSlice) Len() int           { return len(s) }
-func (s durrSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
-func (s durrSlice) Less(i, j int) bool { return s[i] < s[j] }
-
 type weekDays []Weekday
 
 func (s weekDays) Len() int           { return len(s) }

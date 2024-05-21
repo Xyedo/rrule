@@ -3948,6 +3948,24 @@ func TestDST_HourlyDSTEnd(t *testing.T) {
 		}
 	}
 }
+
+func TestDailyDST(t *testing.T) {
+	sydney, _ := time.LoadLocation("Australia/Sydney")
+	r, _ := NewRRule(ROption{
+		Freq:    DAILY,
+		Count:   3,
+		Dtstart: time.Date(2023, 4, 1, 9, 0, 0, 0, sydney),
+	})
+	want := []time.Time{
+		time.Date(2023, 4, 1, 9, 0, 0, 0, sydney),
+		time.Date(2023, 4, 2, 9, 0, 0, 0, sydney),
+		time.Date(2023, 4, 3, 9, 0, 0, 0, sydney),
+	}
+	value := r.All()
+	if !timesEqual(value, want) {
+		t.Errorf("get %v, want %v", value, want)
+	}
+}
 func TestRuleChangeDTStartTimezoneRespected(t *testing.T) {
 	/*
 		https://golang.org/pkg/time/#LoadLocation
