@@ -135,7 +135,7 @@ type RRule struct {
 	byminute                []int
 	bysecond                []int
 	byeaster                []int
-	timeDurr                []time.Duration
+	timeset                 []time.Time
 	len                     int
 	i18n                    *i18n.Bundle
 }
@@ -254,18 +254,18 @@ func buildRRule(arg ROption) RRule {
 	}
 
 	// Reset the timeset value
-	r.timeDurr = nil
+	r.timeset = nil
 
 	if r.freq < HOURLY {
-		r.timeDurr = make([]time.Duration, 0, len(r.byhour)*len(r.byminute)*len(r.bysecond))
+		r.timeset = make([]time.Time, 0, len(r.byhour)*len(r.byminute)*len(r.bysecond))
 		for _, hour := range r.byhour {
 			for _, minute := range r.byminute {
 				for _, second := range r.bysecond {
-					r.timeDurr = append(r.timeDurr, time.Duration(hour)*time.Hour+time.Duration(minute)*time.Minute+time.Duration(second)*time.Second)
+					r.timeset = append(r.timeset, time.Date(1, 1, 1, hour, minute, second, 0, r.dtstart.Location()))
 				}
 			}
 		}
-		sort.Sort(durrSlice(r.timeDurr))
+		sort.Sort(timeSlice(r.timeset))
 	}
 
 	r.Options = arg
@@ -492,7 +492,6 @@ func (info *iterInfo) rebuild(year int, month time.Month) {
 						if i >= len(info.wdaymask) {
 							continue
 						}
-						
 						i += pymod(7-info.wdaymask[i]+wday, 7)
 					}
 					if first <= i && i <= last {
@@ -547,33 +546,33 @@ func (info *iterInfo) calcDaySet(freq Frequency, year int, month time.Month, day
 	}
 }
 
-func (info *iterInfo) fillTimeDurr(set *[]time.Duration, freq Frequency, hour, minute, second int) {
+func (info *iterInfo) fillTimeSet(set *[]time.Time, freq Frequency, hour, minute, second int) {
 	switch freq {
 	case HOURLY:
 		prepareTimeSet(set, len(info.rrule.byminute)*len(info.rrule.bysecond))
 		for _, minute := range info.rrule.byminute {
 			for _, second := range info.rrule.bysecond {
-				*set = append(*set, time.Duration(hour)*time.Hour+time.Duration(minute)*time.Minute+time.Duration(second)*time.Second)
+				*set = append(*set, time.Date(1, 1, 1, hour, minute, second, 0, info.rrule.dtstart.Location()))
 			}
 		}
-		sort.Sort(durrSlice(*set))
+		sort.Sort(timeSlice(*set))
 	case MINUTELY:
 		prepareTimeSet(set, len(info.rrule.bysecond))
 		for _, second := range info.rrule.bysecond {
-			*set = append(*set, time.Duration(hour)*time.Hour+time.Duration(minute)*time.Minute+time.Duration(second)*time.Second)
+			*set = append(*set, time.Date(1, 1, 1, hour, minute, second, 0, info.rrule.dtstart.Location()))
 		}
-		sort.Sort(durrSlice(*set))
+		sort.Sort(timeSlice(*set))
 	case SECONDLY:
 		prepareTimeSet(set, 1)
-		*set = append(*set, time.Duration(hour)*time.Hour+time.Duration(minute)*time.Minute+time.Duration(second)*time.Second)
+		*set = append(*set, time.Date(1, 1, 1, hour, minute, second, 0, info.rrule.dtstart.Location()))
 	default:
 		prepareTimeSet(set, 0)
 	}
 }
 
-func prepareTimeSet(set *[]time.Duration, length int) {
+func prepareTimeSet(set *[]time.Time, length int) {
 	if len(*set) < length {
-		*set = make([]time.Duration, 0, length)
+		*set = make([]time.Time, 0, length)
 		return
 	}
 
@@ -590,7 +589,7 @@ type rIterator struct {
 	second   int
 	weekday  int
 	ii       iterInfo
-	timedurr []time.Duration
+	timeset  []time.Time
 	total    int
 	count    int
 	remain   reusingRemainSlice
@@ -636,14 +635,14 @@ func (iterator *rIterator) generate() {
 		}
 
 		// Output results
-		if len(r.bysetpos) != 0 && len(iterator.timedurr) != 0 {
+		if len(r.bysetpos) != 0 && len(iterator.timeset) != 0 {
 			var poslist []time.Time
 			for _, pos := range r.bysetpos {
 				var daypos, timepos int
 				if pos < 0 {
-					daypos, timepos = divmod(pos, len(iterator.timedurr))
+					daypos, timepos = divmod(pos, len(iterator.timeset))
 				} else {
-					daypos, timepos = divmod(pos-1, len(iterator.timedurr))
+					daypos, timepos = divmod(pos-1, len(iterator.timeset))
 				}
 				var temp []int
 				for _, day := range dayset {
@@ -655,9 +654,23 @@ func (iterator *rIterator) generate() {
 				if err != nil {
 					continue
 				}
-				timeTemp := iterator.timedurr[timepos]
-				res := iterator.ii.firstyday.AddDate(0, 0, i).
-					Add(timeTemp)
+				timeTemp := iterator.timeset[timepos]
+				date := iterator.ii.firstyday.AddDate(0, 0, i)
+				dateYear, dateMonth, dateDay := date.Date()
+				tempHour, tempMinute, tempSecond := timeTemp.Clock()
+
+				var res time.Time
+				if r.freq < HOURLY {
+					res = time.Date(dateYear, dateMonth, dateDay,
+						tempHour, tempMinute, tempSecond,
+						timeTemp.Nanosecond(), timeTemp.Location())
+				} else {
+					res = date.Add(
+						time.Duration(tempHour)*time.Hour +
+							time.Duration(tempMinute)*time.Minute +
+							time.Duration(tempSecond)*time.Second,
+					)
+				}
 
 				if !timeContains(poslist, res) {
 					poslist = append(poslist, res)
@@ -688,17 +701,31 @@ func (iterator *rIterator) generate() {
 					continue
 				}
 				i := day.Int
-				res := iterator.ii.firstyday.AddDate(0, 0, i)
-				for _, timeTemp := range iterator.timedurr {
+				date := iterator.ii.firstyday.AddDate(0, 0, i)
+				dateYear, dateMonth, dateDay := date.Date()
+				for _, timeTemp := range iterator.timeset {
+					tempHour, tempMinute, tempSecond := timeTemp.Clock()
 
-					date := res.Add(timeTemp)
-					if !r.until.IsZero() && date.After(r.until) {
+					var res time.Time
+					if r.freq < HOURLY {
+						res = time.Date(dateYear, dateMonth, dateDay,
+							tempHour, tempMinute, tempSecond,
+							timeTemp.Nanosecond(), timeTemp.Location())
+					} else {
+						res = date.Add(
+							time.Duration(tempHour)*time.Hour +
+								time.Duration(tempMinute)*time.Minute +
+								time.Duration(tempSecond)*time.Second,
+						)
+					}
+
+					if !r.until.IsZero() && res.After(r.until) {
 						r.len = iterator.total
 						iterator.finished = true
 						return
-					} else if !date.Before(r.dtstart) {
+					} else if !res.Before(r.dtstart) {
 						iterator.total++
-						iterator.remain.Append(date)
+						iterator.remain.Append(res)
 						if iterator.count != 0 {
 							iterator.count--
 							if iterator.count == 0 {
@@ -766,7 +793,7 @@ func (iterator *rIterator) generate() {
 					break
 				}
 			}
-			iterator.ii.fillTimeDurr(&iterator.timedurr, r.freq, iterator.hour, iterator.minute, iterator.second)
+			iterator.ii.fillTimeSet(&iterator.timeset, r.freq, iterator.hour, iterator.minute, iterator.second)
 		} else if r.freq == MINUTELY {
 			if filtered {
 				// Jump to one iteration before next day
@@ -790,7 +817,7 @@ func (iterator *rIterator) generate() {
 					break
 				}
 			}
-			iterator.ii.fillTimeDurr(&iterator.timedurr, r.freq, iterator.hour, iterator.minute, iterator.second)
+			iterator.ii.fillTimeSet(&iterator.timeset, r.freq, iterator.hour, iterator.minute, iterator.second)
 		} else if r.freq == SECONDLY {
 			if filtered {
 				// Jump to one iteration before next day
@@ -820,7 +847,7 @@ func (iterator *rIterator) generate() {
 					break
 				}
 			}
-			iterator.ii.fillTimeDurr(&iterator.timedurr, r.freq, iterator.hour, iterator.minute, iterator.second)
+			iterator.ii.fillTimeSet(&iterator.timeset, r.freq, iterator.hour, iterator.minute, iterator.second)
 		}
 		if fixday && iterator.day > 28 {
 			daysinmonth := daysIn(iterator.month, iterator.year)
@@ -908,14 +935,14 @@ func (r *RRule) Iterator() Next {
 	iterator.ii.rebuild(iterator.year, iterator.month)
 
 	if r.freq < HOURLY {
-		iterator.timedurr = r.timeDurr
+		iterator.timeset = r.timeset
 	} else {
 		if r.freq >= HOURLY && len(r.byhour) != 0 && !contains(r.byhour, iterator.hour) ||
 			r.freq >= MINUTELY && len(r.byminute) != 0 && !contains(r.byminute, iterator.minute) ||
 			r.freq >= SECONDLY && len(r.bysecond) != 0 && !contains(r.bysecond, iterator.second) {
-			iterator.timedurr = nil
+			iterator.timeset = nil
 		} else {
-			iterator.ii.fillTimeDurr(&iterator.timedurr, r.freq, iterator.hour, iterator.minute, iterator.second)
+			iterator.ii.fillTimeSet(&iterator.timeset, r.freq, iterator.hour, iterator.minute, iterator.second)
 		}
 	}
 	iterator.count = r.count

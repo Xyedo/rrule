@@ -175,7 +175,7 @@ func StrToROption(rfcString string) (*ROption, error) {
 // StrToROptionInLocation is same as StrToROption but in case local
 // time is supplied as date-time/date field (ex. UNTIL), it is parsed
 // as a time in a given location (time zone)
-func StrToROptionInLocation(rfcString string, loc *time.Location) (*ROption, error) {
+func StrToROptionInLocation(rfcString string, defaultLoc *time.Location) (*ROption, error) {
 	rfcString = strings.TrimSpace(rfcString)
 	strs := strings.Split(rfcString, "\n")
 	var rruleStr, dtstartStr string
@@ -192,6 +192,7 @@ func StrToROptionInLocation(rfcString string, loc *time.Location) (*ROption, err
 	result := ROption{}
 	freqSet := false
 
+	loc := defaultLoc
 	if dtstartStr != "" {
 		firstName, err := processRRuleName(dtstartStr)
 		if err != nil {
@@ -201,7 +202,7 @@ func StrToROptionInLocation(rfcString string, loc *time.Location) (*ROption, err
 			return nil, fmt.Errorf("expect DTSTART but: %s", firstName)
 		}
 
-		result.Dtstart, err = StrToDtStart(dtstartStr[len(firstName)+1:], loc)
+		result.Dtstart, loc, err = strToDtStartAndLocation(dtstartStr[len(firstName)+1:], defaultLoc)
 		if err != nil {
 			return nil, fmt.Errorf("StrToDtStart failed: %s", err)
 		}
@@ -453,21 +454,30 @@ func processRRuleName(line string) (string, error) {
 // StrToDtStart accepts string with format: "(TZID={timezone}:)?{time}" and parses it to a date
 // may be used to parse DTSTART rules, without the DTSTART; part.
 func StrToDtStart(str string, defaultLoc *time.Location) (time.Time, error) {
+	t, _, err := strToDtStartAndLocation(str, defaultLoc)
+	return t, err
+}
+
+// strToDtStartAndLocation accepts string with format: "(TZID={timezone}:)?{time}" and parses it to a date
+// may be used to parse DTSTART rules, without the DTSTART; part.
+func strToDtStartAndLocation(str string, defaultLoc *time.Location) (time.Time, *time.Location, error) {
 	tmp := strings.Split(str, ":")
 	if len(tmp) > 2 || len(tmp) == 0 {
-		return time.Time{}, fmt.Errorf("bad format")
+		return time.Time{}, nil, fmt.Errorf("bad format")
 	}
 
 	if len(tmp) == 2 {
 		// tzid
 		loc, err := parseTZID(tmp[0])
 		if err != nil {
-			return time.Time{}, err
+			return time.Time{}, nil, err
 		}
-		return strToTimeInLoc(tmp[1], loc)
+		t, err := strToTimeInLoc(tmp[1], loc)
+		return t, t.Location(), err
 	}
 	// no tzid, len == 1
-	return strToTimeInLoc(tmp[0], defaultLoc)
+	t, err := strToTimeInLoc(tmp[0], defaultLoc)
+	return t, t.Location(), err
 }
 
 func parseTZID(s string) (*time.Location, error) {
