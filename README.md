@@ -24,7 +24,7 @@ import (
   "fmt"
   "time"
 
-  "github.com/teambition/rrule-go"
+  "github.com/xyedo/rrule"
 )
 
 func printTimeSlice(ts []time.Time) {
@@ -76,6 +76,9 @@ func main() {
 	// 1996-11-05 09:00:00 +0000 UTC
 	// 2000-11-07 09:00:00 +0000 UTC
 	// 2004-11-02 09:00:00 +0000 UTC
+
+  fmt.Println(r.ToText())
+  // every 4 years November on Tuesday the 2nd, 3rd, 4th, 5th, 6th, 7th or 8th for 3 times
 }
 
 ```
@@ -171,6 +174,103 @@ func ExampleStrToRRuleSet() {
 	// 2006-01-04 15:04:05 +0000 UTC
 	// 2006-01-05 15:04:05 +0000 UTC
 }
+```
+
+### rrule.ToTextWithCustomFormatter 
+
+```go
+
+type indonesianFormatter struct{}
+
+// Format implements TimeFormatter.
+func (i indonesianFormatter) Format(t time.Time) string {
+	month := [...]string{
+		"Januari", "Februari", "Maret", "April", "Mei", "Juni",
+		"Juli", "Agustus", "September", "Oktober", "November", "Desember",
+	}[t.Month()-1]
+
+	return strconv.Itoa(t.Day()) + " " + month + " " + strconv.Itoa(t.Year())
+}
+
+// MonthName implements TimeFormatter.
+func (i indonesianFormatter) MonthName(m int) string {
+	return [...]string{
+		"Januari", "Februari", "Maret", "April", "Mei", "Juni",
+		"Juli", "Agustus", "September", "Oktober", "November", "Desember",
+	}[m-1]
+}
+
+// Nth implements TimeFormatter.
+func (indonesianFormatter) Nth(i int) string {
+	if i == -1 {
+		return "terakhir"
+	}
+	abs := func(i int) int {
+		if i < 0 {
+			return -i
+		}
+		return i
+	}
+	npos := abs(i)
+	n := strings.Builder{}
+	switch npos {
+	case 1:
+		return "pertama"
+	default:
+		n.WriteString("ke-" + strconv.Itoa(npos))
+	}
+	if i < 0 {
+		return n.String() + " terakhir"
+	}
+
+	return n.String()
+}
+
+// WeekDayName implements TimeFormatter.
+func (i indonesianFormatter) WeekDayName(w rrule.Weekday) string {
+	weekday := [...]string{
+		"Senin",
+		"Selasa",
+		"Rabu",
+		"Kamis",
+		"Jumat",
+		"Sabtu",
+		"Minggu",
+	}[w.Day()]
+
+	if n := w.N(); n != 0 {
+		return weekday + " " + i.Nth(n)
+	}
+
+	return weekday
+}
+
+var _ rrule.TimeFormatter = indonesianFormatter{}
+
+func ExampleToTextWithCustomFormatter() {
+	bun := i18n.NewBundle(language.English)
+	bun.RegisterUnmarshalFunc("toml", toml.Unmarshal)
+
+	bun.MustLoadMessageFile("../active.en.toml")
+	bun.MustLoadMessageFile("active.id.toml")
+
+	r, _ := rrule.StrToRRuleWithi18n("FREQ=DAILY;COUNT=5", bun)
+	fmt.Println(r.String())
+	// RRULE:FREQ=DAILY;COUNT=5
+
+	got, err := r.ToTextWithCustomFormatter(indonesianFormatter{}, "id")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(got)
+	// Every day for 5 times
+
+	// Output:
+	// FREQ=DAILY;COUNT=5
+	// setiap hari sebanyak 5 kali
+}
+
 ```
 
 For more examples see [python-dateutil](http://labix.org/python-dateutil/) documentation.
